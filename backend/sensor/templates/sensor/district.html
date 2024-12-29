@@ -1,0 +1,41 @@
+{%  extends "main/base/base.html" %}
+
+{% load static %}
+
+
+
+{% block content %}
+    <div id = "container">
+        <div id="map"></div>
+    </div>
+    <div class="container mt-5">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Локация</th>
+                        <th>Заполнено?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sensor in sensors %}
+                        <tr>
+                            <td>{{sensor.id}}</td>
+                            <td>{{sensor.address}}</td>
+                            <td>{{sensor.is_full}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{ sensors|json_script:"sensors-data" }}
+
+    {% block scripts %}
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="{% static 'sensor/js/map.js' %}"></script>
+    <script src="{% static 'sensor/js/bootstrap.js' %}"></script>
+    {% endblock %}
+{% endblock %}

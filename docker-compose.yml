@@ -1,0 +1,52 @@
+version: "3.8"
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:
+
+services:
+  db:
+    image: postgres:13.0-alpine
+    container_name: device-db
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  backend:
+    build: ./backend
+    container_name: device-backend
+    env_file: .env
+    volumes:
+      - ./backend:/app
+      - static_data:/app/static
+      - media_data:/app/media
+    depends_on:
+      - db
+    ports:
+      - 8000:8000
+    links:
+      - db
+    restart: always
+    command: >
+      sh -c "
+      python3 manage.py makemigrations &&
+      python3 manage.py migrate &&
+      python3 manage.py collectstatic --noinput &&
+      python3 manage.py runserver 0.0.0.0:8000
+      "
+
+  redis:
+    image: redis:7.2.3-alpine
+    container_name: device-redis
+    restart: unless-stopped
+
+  celery:
+    container_name: celery
+    build: ./backend
+    command: celery -A device.celery worker -l info
+    env_file:
+      - .env
+    depends_on:
+      - redis
